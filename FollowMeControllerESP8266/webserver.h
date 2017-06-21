@@ -18,6 +18,7 @@ struct MyData {
 };
 
 String followMeMode = "";
+String followMeState = "";
 MyData data;
 
 int ledCounter = 0;
@@ -47,8 +48,7 @@ void setupWiFi() {
   uint8_t mac[WL_MAC_ADDR_LENGTH];
   WiFi.softAPmacAddress(mac);
   
-  String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
-                 String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
+  String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) + String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
   macID.toUpperCase();
   
   String AP_NameString = "Follow Me - " + macID;
@@ -72,10 +72,15 @@ void radio_setup()
   server.begin();
 }
 
+String responseHeader = "HTTP/1.1 200 OK\r\n Content-Type: text/html\r\n\r\n <!DOCTYPE HTML>\r\n<html>\r\n";
+
 void radio_loop() {
   int32_t oldLat = data.lat;
   int32_t oldLon = data.lon;
   int32_t oldAlt = data.alt;
+
+  //Serial.println();
+  //Serial.println("Radio Loop");
 
   // Check if a client has connected
   WiFiClient client = server.available();
@@ -84,48 +89,58 @@ void radio_loop() {
   }
 
   // Read the first line of the request
-  String response = "";
+  String response = responseHeader;
   String req = client.readStringUntil('\r');
-  Serial.println(req);
+  //Serial.print("Client Request:");
+  //Serial.println(req);
   client.flush();
 
   // if a request has been received compare it to what we are expecting
-  if (req.indexOf("/lat/") != -1) {
-    int startPos = req.indexOf("/lat/")+5;
-    data.lat = (int32_t)(req.substring(startPos, req.indexOf(" HTTP")).toFloat()*10000000);
+  if (req.indexOf("lat=") != -1) {
+    int startPos = req.indexOf("lat=")+4;
+    data.lat = (int32_t)(req.substring(startPos, req.indexOf("&lon")).toFloat()*10000000);
     response += "Lat updated: ";
     response += String(data.lat);
+    response += "<br>";
   }
-  else if (req.indexOf("/lon/") != -1) {
-    int startPos = req.indexOf("/lon/")+5;
-    //followMeLongitude = req.substring(startPos, req.indexOf(" HTTP")).toFloat();
-    data.lon = (int32_t)(req.substring(startPos, req.indexOf(" HTTP")).toFloat()*10000000);
+  if (req.indexOf("lon=") != -1) {
+    int startPos = req.indexOf("lon=")+4;
+    data.lon = (int32_t)(req.substring(startPos, req.indexOf("&alt")).toFloat()*10000000);
     response += "Lon updated: ";
     response += String(data.lon);
+    response += "<br>";
   }
-  else if (req.indexOf("/alt/") != -1) {
-    int startPos = req.indexOf("/alt/")+5;
-    //followMeAltitude = req.substring(startPos, req.indexOf(" HTTP")).toInt();
-    data.alt = (int32_t)(req.substring(startPos, req.indexOf(" HTTP")).toInt());
+  if (req.indexOf("alt=") != -1) {
+    int startPos = req.indexOf("alt=")+4;
+    data.alt = (int32_t)(req.substring(startPos, req.indexOf("&mode")).toInt());
     response += "Alt updated: ";
     response += String(data.alt);
+    response += "<br>";
   }
-  else if (req.indexOf("/mode/") != -1) {
-    int startPos = req.indexOf("/mode/")+6;
+  if (req.indexOf("mode=") != -1) {
+    int startPos = req.indexOf("mode=")+5;
     followMeMode = req.substring(startPos, req.indexOf(" HTTP"));
     response += "Mode updated to:";
     response += followMeMode;
+    response += "<br>";
   }
-  else 
-    response += "Error: request invalid";
-
+  if (req.indexOf("followme=") != -1) {
+    int startPos = req.indexOf("followme=")+9;
+    followMeState = req.substring(startPos, req.indexOf(" HTTP"));
+    response += "Follow Me:";
+    response += followMeState;
+    response += "<br>";
+  }
+  
   // Send the response to the client
+  //Serial.println(response);
   client.print(response);
-  delay(1);
+  //delay(1);
 
   toggleLed();
   
   if ( oldLat != data.lat || oldLon != data.lon || oldAlt != data.alt )
     newRadioData = true;
+
 }
 

@@ -82,4 +82,16 @@ void rc_loop() {
   if ( controlMode != oldMode )
     enterFollowMeMode();
   */
+
+  // NO WAY TO GET OUT OF FOLLOW-ME MODE
+  if (followMeMode == "Overhead")
+    controlMode = CM_OVERHEAD;
+  else if (followMeMode == "Fixed-Radius")
+    controlMode = CM_FIXED_RADIUS;
+  else if (followMeMode == "Fixed-Offset")
+    controlMode = CM_FIXED_OFFSET;
+  else if (followMeMode == "Circle")
+    controlMode = CM_CIRCLE;
+  else if (followMeMode == "Turn-Only")
+    controlMode = CM_TURN_ONLY;
 }
