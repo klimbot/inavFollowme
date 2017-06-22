@@ -18,7 +18,7 @@ struct MyData {
 };
 
 String followMeMode = "";
-String followMeState = "";
+boolean followMeState = false;
 MyData data;
 
 int ledCounter = 0;
@@ -87,6 +87,7 @@ void radio_loop() {
   if (!client) {
     return;
   }
+  //Serial.println(WiFi.softAPIP());
 
   // Read the first line of the request
   String response = responseHeader;
@@ -126,16 +127,25 @@ void radio_loop() {
   }
   if (req.indexOf("followme=") != -1) {
     int startPos = req.indexOf("followme=")+9;
-    followMeState = req.substring(startPos, req.indexOf(" HTTP"));
+    String followMe = req.substring(startPos, req.indexOf(" HTTP"));
+
+    if (followMe = "on")
+      followMeState = true;
+      //enterFollowMeMode();
+    else
+      followMeState = false;
+      //exitFollowMeMode();
+    
     response += "Follow Me:";
-    response += followMeState;
+    response += followMe;
     response += "<br>";
   }
   
   // Send the response to the client
   //Serial.println(response);
   client.print(response);
-  //delay(1);
+  delay(1);
+  client.stop();
 
   toggleLed();
   

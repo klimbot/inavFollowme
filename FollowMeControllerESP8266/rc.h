@@ -83,7 +83,12 @@ void rc_loop() {
     enterFollowMeMode();
   */
 
-  // NO WAY TO GET OUT OF FOLLOW-ME MODE
+
+  if (followMeState = true)
+    enterFollowMeMode();
+  else
+    exitFollowMeMode();
+  
   if (followMeMode == "Overhead")
     controlMode = CM_OVERHEAD;
   else if (followMeMode == "Fixed-Radius")

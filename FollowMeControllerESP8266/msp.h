@@ -430,7 +430,5 @@ void msp_loop() {
       lastWaypointSetTime = millis();
       newRadioData = false;
     }
-    
   }
-  
 }
